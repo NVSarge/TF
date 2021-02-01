@@ -116,22 +116,45 @@ namespace TF
                 }
             }
 
+            int[] inds = new int[4 * (nely + 1)];
+            for(int i=0;i< 2 * (nely + 1); i++)
+            {
+                inds[i] = i;
+                inds[i+ 2 * (nely + 1)] = N - 2 * (nely + 1)+i-1;
+            }
+           
 
-            double[,] Kmm = MatrixMath.SolveLU.To2D<double>(K);
-            double[,] Mmm = MatrixMath.SolveLU.To2D<double>(M);
+            double[,] Kmm = MatrixMath.To2D<double>(K);
+            double[,] Mmm = MatrixMath.To2D<double>(M);
+
+
+            Kmm = MatrixMath.CrossOut(Kmm, inds);
+            Mmm = MatrixMath.CrossOut(Mmm, inds);
             //left border fix
-            Kmm = MatrixMath.SolveLU.SubArray(Kmm, 2 * (nely + 1), 2 * (nelx + 1) * (nely + 1) - 1, 2 * (nely + 1), 2 * (nelx + 1) * (nely + 1) - 1);
-            Mmm = MatrixMath.SolveLU.SubArray(Mmm, 2 * (nely + 1), 2 * (nelx + 1) * (nely + 1) - 1, 2 * (nely + 1), 2 * (nelx + 1) * (nely + 1) - 1);
+
+            /*Kmm = MatrixMath.SubArray(Kmm, 2 * (nely + 1), 2 * (nelx + 1) * (nely + 1) - 1, 2 * (nely + 1), 2 * (nelx + 1) * (nely + 1) - 1);
+            Mmm = MatrixMath.SubArray(Mmm, 2 * (nely + 1), 2 * (nelx + 1) * (nely + 1) - 1, 2 * (nely + 1), 2 * (nelx + 1) * (nely + 1) - 1);
+            */
 
             int reducedN = Kmm.GetLength(0);
-
-
-
-
             double[] wr = new double[reducedN];
+            //solve
             alglib.smatrixgevd(Kmm, reducedN, false, Mmm, false, 1, 1, out wr, out V);
+            for (int i = 0; i < V.GetLength(0); i++)
+            {
+                for (int j = 0; j < V.GetLength(1); j++)
+                {
+                    V[i, j] = Math.Cos(wr[i]) * V[i, j];
+                }
+            }
+            V = MatrixMath.FillOnWeird(V, inds);
+            
+
             return wr;
         }
+
+        
+
         public double[] FE(int nelx, int nely, double[] x, double p)
         {
             var ke = KE;
@@ -162,8 +185,8 @@ namespace TF
             F[F.Length - 1] = 1;
             double[][] L = K_m;
 
-            double[,] Kmm = MatrixMath.SolveLU.To2D<double>(K_m);
-            Kmm = MatrixMath.SolveLU.SubArray(Kmm, 2 * (nely + 1), 2 * (nelx + 1) * (nely + 1) - 1, 2 * (nely + 1), 2 * (nelx + 1) * (nely + 1) - 1);
+            double[,] Kmm = MatrixMath.To2D<double>(K_m);
+            Kmm = MatrixMath.SubArray(Kmm, 2 * (nely + 1), 2 * (nelx + 1) * (nely + 1) - 1, 2 * (nely + 1), 2 * (nelx + 1) * (nely + 1) - 1);
             MatrixMath.SolveLU tc = new MatrixMath.SolveLU(F.Length, Kmm, F);
             double[] U = new double[2 * (nelx) * (nely + 1)];
             if (tc.LUdecomp())

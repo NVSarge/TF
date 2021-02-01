@@ -7,16 +7,12 @@ using static Tensorflow.Binding;
 
 namespace TF
 {
-    public class Population
+    public class Population<T>
     {
-        GenePool<int> GP;
-        List<Genome> Pop;
+        GenePool<T> GP;
+        List<Genome<T>> Pop;
         List<double> Rating;
         int FullLength;
-        double initialUB;
-        double initialLB;
-
-
         public double GetTopRating(int ind = 0)
         {
             if (Rating.Count > 0)
@@ -28,7 +24,19 @@ namespace TF
                 return double.PositiveInfinity;
             }
         }
+        public double[,] GetTopDataU(int ind = 0)
+        {
+            if (Pop.Count > 0)
+            {
 
+                return Pop[ind].defs;
+            }
+            else
+            {
+                return null;
+            }
+
+        }
         public string GetTopData(int ind = 0)
         {
             if (Pop.Count > 0)
@@ -43,9 +51,9 @@ namespace TF
 
         }
 
-        public double[] GetTop(int ind = 0)
+        public T[] GetTop(int ind = 0)
         {
-            double[] retval = new double[Pop[ind].Genom.Length];
+            T[] retval = new T[Pop[ind].Genom.Length];
             for (int i = 0; i < Pop[ind].Genom.Length; i++)
             {
                 retval[i] = Pop[ind].Genom[i];
@@ -77,48 +85,28 @@ namespace TF
         {
             FullLength = size;
             Rating = new List<double>();
-            Pop = new List<Genome>();
-            GP = new GenePool<double>();
+            Pop = new List<Genome<T>>();
+            GP = new GenePool<T>();
             for (int i = 0; i < size; i++)
             {
-                Pop.Add(new Genome(genomeLength));
+                Pop.Add(new Genome<T>(genomeLength));
             }
         }
-        public void InitialFill(double lb, double ub, double baselline)
-        {
-            initialLB = lb;
-            initialUB = ub;
-            foreach (var G in Pop)
-            {
-                G.RandomizeInitial(baselline, baselline);
-            }
-        }
-        public void InitialFill(double lb, double ub)
-        {
-            initialLB = lb;
-            initialUB = ub;
-            foreach (var G in Pop)
-            {
-                G.RandomizeInitial(initialLB, initialUB);
-            }
-        }
-        public void AddToGenePool(double GENE)
+
+        public void AddToGenePool(T GENE)
         {
             GP.AddToPool(GENE);
         }
         public void InitialFillGP()
         {
-            initialLB = 0;
-            initialUB = 1;
             Random r = new Random();
             for (int i = 0; i < Pop.Count; i++)
             {
 
-                var Gt = Pop[i].RandomizeInitial(initialLB, initialUB, GP, r);
-                // Pop[i + 1].FillByInvert(Gt, 4.0);
+                var Gt = Pop[i].RandomizeInitial(GP, r);
             }
         }
-        public void Eval(Func<Genome, int, int, double, double> EvalFunc, int WX, int WY, double vf)
+        public void Eval(Func<Genome<T>, int, int, double, double, double, double, double> EvalFunc, int WX, int WY, double vf, double f1, double f2, double f3)
         {
             Rating.Clear();
             /*foreach (var g in Pop)
@@ -129,7 +117,7 @@ namespace TF
 
             Parallel.ForEach(Pop, (g) =>
             {
-                double f = EvalFunc(g, WX, WY, vf);
+                double f = EvalFunc(g, WX, WY, vf,f1,f2,f3);
                 g.Rating = f;
                 //Rating.Add(f);
             });/**/
@@ -146,7 +134,7 @@ namespace TF
             Pop.RemoveRange(CutInd, Pop.Count - CutInd);
             Rating.Sort();
         }
-        public void Mutate(int parents, int VariateProb = 0, bool isGenePoolusage = false, int WX = 0, int WY = 0)
+        public void Mutate(int parents, int VariateProb = 0,int WX = 0, int WY = 0)
         {
             Random r = new Random();
             int InitialBreed = Pop.Count;
@@ -158,7 +146,7 @@ namespace TF
                 {
                     pars[i] = r.Next(Pop.Count);
                 }
-                Genome g_child = new Genome(Pop[0].Genom.Length);
+                Genome<T> g_child = new Genome<T>(Pop[0].Genom.Length);
                 for (int i = 0; i < g_child.Genom.Length; i++)
                 {
                     g_child.Genom[i] = Pop[pars[0]].Genom[i];
@@ -185,14 +173,8 @@ namespace TF
                     {
                         if (r.Next(VariateProb) == 1)
                         {
-                            if (isGenePoolusage)
-                            {
-                                g_child.Genom[i] = GP.GetRandomGene(r);
-                            }
-                            else
-                            {
-                                g_child.Genom[i] = r.NextDouble() * (initialUB - initialLB) + initialLB;
-                            }
+                                g_child.AddToGene(i,(T)GP.GetRandomGene(r));
+                         
                         }
 
                     }

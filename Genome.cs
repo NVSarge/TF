@@ -3,14 +3,15 @@
 
 namespace TF
 {
-    public class Genome:BaseGenome<double>
+    public class Genome<T> : BaseGenome<T>
     {
         public string Addata;
+        public double[,] defs;
         public Genome(int L = 100)
         {
-            Addata = "";
+            Addata = "";            
         }
-        public double[] RandomizeInitial(double lb, double ub, GenePool<double> GP = null, Random r = null)
+        public T[] RandomizeInitial(GenePool<T> GP, Random r = null)
         {
 
             if (r == null)
@@ -20,26 +21,10 @@ namespace TF
 
             for (int i = 0; i < Genom.Length; i++)
             {
-                if (GP == null)
-                {
-                    Genom[i] = r.NextDouble() * (ub - lb) + lb;
-                }
-                else
-                {
+
                     Genom[i] = GP.GetRandomGene(r);
-                }
             }
             return Genom;
-        }
-
-
-        public void FillByInvert(double[] G, double GMax)
-        {
-          
-            for (int i = 0; i < Genom.Length; i++)
-            {
-                Genom[i] = GMax - G[i];
-            }/**/
         }
 
     };

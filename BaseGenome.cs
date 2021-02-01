@@ -8,7 +8,15 @@
         {
             Rating = double.PositiveInfinity;
             Genom = new T[L];
-        }       
+        }
+        public void AddToGene(int i, T G)
+        {
+            if(Genom.Length>i)
+            {
+                Genom[i] = G;
+            }
+        }
+
 
     };
 

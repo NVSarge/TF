@@ -78,8 +78,25 @@ namespace TF
 
         private async void button2_Click(object sender, EventArgs e)
         {
-
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
             var ProgessDraw = new Progress<Image>(s => Plotter.Image = s);
+            totalProgress.Value = 0;
+            var progressB = new Progress<double>(percent =>
+            {
+                totalProgress.Value = (int)(percent*100.0);
+                stopWatch.Stop();
+                TimeSpan ts = stopWatch.Elapsed;
+                var tm = ts.TotalSeconds;
+                tm=100.0*tm / (1.0 - percent);
+                ts=TimeSpan.FromSeconds(tm);
+                // Format and display the TimeSpan value.
+                string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}:{3:00}",
+                    ts.Days,ts.Hours, ts.Minutes, ts.Seconds);
+                ETA.Text = elapsedTime;
+                stopWatch.Restart();
+                
+            });
             int WX = int.Parse(sizeX.Text);
             int WY = int.Parse(sizeY.Text);
             double volfraq = 0.5;
@@ -87,7 +104,7 @@ namespace TF
             int flk = int.Parse(Flock.Text);
 
             //await Task.Factory.StartNew(() => GeneticsSearch.GoBreed_Modal(ProgessDraw, WX, WY, volfraq, pps, flk), TaskCreationOptions.LongRunning);
-            await Task.Factory.StartNew(() => GeneticsSearch.GoWeave_Modal(ProgessDraw, WX, WY, volfraq, pps, flk), TaskCreationOptions.LongRunning);
+            await Task.Factory.StartNew(() => GeneticsSearch.GoWeave_Modal(ProgessDraw, WX, WY, volfraq, pps, flk, progressB), TaskCreationOptions.LongRunning);
             //await Task.Factory.StartNew(() => GeneticsSearch.GoWeave(ProgessDraw, WX, WY, volfraq, pps,flk), TaskCreationOptions.LongRunning);
             //await Task.Factory.StartNew(() => GeneticsSearch.GoBreed(ProgessDraw, WX, WY, volfraq, 10000, 300), TaskCreationOptions.LongRunning);
             // await Task.Factory.StartNew(() => GeneticsSearch.GoSimp(ProgessDraw, WX, WY, volfraq, 300,1), TaskCreationOptions.LongRunning);
@@ -154,7 +171,7 @@ namespace TF
             Console.WriteLine("\nSolution x = ");
             MatrixMath.VecShow(x, 1, 8);
 
-            double[,] mm = MatrixMath.SolveLU.To2D<double>(m);
+            double[,] mm = MatrixMath.To2D<double>(m);
             MatrixMath.SolveLU tc = new MatrixMath.SolveLU(4, mm, b);
             double[] U = new double[4];
 

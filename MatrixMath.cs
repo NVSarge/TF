@@ -6,7 +6,195 @@ namespace TF
 {
     public class MatrixMath
     {
+        public static T[,] FillOnWeird<T>(T[,] values, int[] indexes_to_cross)
+        {
+            // Allocate the result array.
+            var FirstDim = values.GetLength(0);
+            var SecondDim = values.GetLength(1);
+            int incI = 0;
+            int incJ = 0;
+            T[,] result = new T[FirstDim + indexes_to_cross.Length, SecondDim + indexes_to_cross.Length];
 
+            // Get the number of columns in the values array.
+            int newI = 0;
+            int newJ = 0;
+            for (int i = 0; i < FirstDim + indexes_to_cross.Length; i++)
+            {
+                if (i < FirstDim-indexes_to_cross.Length)
+                {
+
+                    incJ = 0;
+                    newJ = 0;
+                    for (int j = 0; j < SecondDim + indexes_to_cross.Length; j++)
+                    {
+                        if (j != indexes_to_cross[incJ])
+                        {
+                            result[i, j] = values[newI, newJ];
+                            newJ++;
+
+                        }
+                        else
+                        {
+                            if (incJ < indexes_to_cross.Length - 1)
+                            {
+                                incJ++;
+                            }
+                        }
+
+                    }
+                    newI++;
+                }
+                else
+                {
+                    if (incI < indexes_to_cross.Length - 1)
+                    {
+                        incI++;
+                    }
+
+                }
+            }
+
+            return result;
+        }
+        public static T[,] FillOn<T>(T[,] values, int[] indexes_to_cross)
+        {
+            // Allocate the result array.
+            var FirstDim = values.GetLength(0);
+            var SecondDim = values.GetLength(1);
+            int incI = 0;
+            int incJ = 0;
+            T[,] result = new T[FirstDim +indexes_to_cross.Length, SecondDim + indexes_to_cross.Length];
+
+            // Get the number of columns in the values array.
+            int newI = 0;
+            int newJ = 0;
+            for (int i = 0; i < FirstDim + indexes_to_cross.Length; i++)
+            {
+                if (i != indexes_to_cross[incI])
+                {
+
+                    incJ = 0;
+                    newJ = 0;
+                    for (int j = 0; j < SecondDim + indexes_to_cross.Length; j++)
+                    {
+                        if (j != indexes_to_cross[incJ])
+                        {
+                            result[i, j] = values[newI, newJ];
+                            newJ++;
+
+                        }
+                        else
+                        {
+                            if (incJ < indexes_to_cross.Length - 1)
+                            {
+                                incJ++;
+                            }
+                        }
+
+                    }
+                    newI++;
+                }
+                else
+                {
+                    if (incI < indexes_to_cross.Length - 1)
+                    {
+                        incI++;
+                    }
+
+                }
+            }
+
+            return result;
+        }
+        public static T[,] CrossOut<T>(T[,] values,int[] indexes_to_cross)
+        {
+            // Allocate the result array.
+            var FirstDim = values.GetLength(0);
+            var SecondDim = values.GetLength(1);
+            int incI = 0;
+            int incJ = 0;
+            T[,] result = new T[FirstDim - indexes_to_cross.Length, SecondDim - indexes_to_cross.Length];
+
+            // Get the number of columns in the values array.
+            int newI = 0;
+            int newJ = 0;
+            for (int i = 0; i < FirstDim; i++)
+            {
+                if (i != indexes_to_cross[incI])
+                {
+                    
+                    incJ = 0;
+                    newJ = 0;
+                    for (int j = 0; j < SecondDim; j++)
+                    {
+                        if (j != indexes_to_cross[incJ])
+                        {
+                            result[newI, newJ] = values[i, j];
+                            newJ++;
+                           
+                        }else
+                        {
+                            if (incJ < indexes_to_cross.Length - 1)
+                            {
+                                incJ++;
+                            }
+                        }
+
+                    }
+                    newI++;
+                }else
+                {
+                    if(incI<indexes_to_cross.Length-1)
+                    {
+                        incI++;
+                    }
+                    
+                }
+            }
+
+            return result;
+        }
+        public static T[,] SubArray<T>(T[,] values, int row_min, int row_max, int col_min, int col_max)
+        {
+            // Allocate the result array.
+            int num_rows = row_max - row_min + 1;
+            int num_cols = col_max - col_min + 1;
+            T[,] result = new T[num_rows, num_cols];
+
+            // Get the number of columns in the values array.
+            int total_cols = values.GetUpperBound(1) + 1;
+            int from_index = row_min * total_cols + col_min;
+            int to_index = 0;
+            for (int row = 0; row <= num_rows - 1; row++)
+            {
+                Array.Copy(values, from_index, result, to_index, num_cols);
+                from_index += total_cols;
+                to_index += num_cols;
+            }
+
+            return result;
+        }
+        public static T[,] To2D<T>(T[][] source, int startRow = 0, int startCol = 0, int endRow = 0, int endCol = 0)
+        {
+            try
+            {
+                var FirstDim = source.Length - endRow - startRow;
+                var SecondDim =
+                    source.GroupBy(row => row.Length).Single()
+                        .Key - endCol - startCol; // throws InvalidOperationException if source is not rectangular
+
+                var result = new T[FirstDim, SecondDim];
+                for (var i = startRow; i < FirstDim; ++i)
+                    for (var j = startCol; j < SecondDim; ++j)
+                        result[i - startRow, j - startCol] = source[i][j];
+
+                return result;
+            }
+            catch (InvalidOperationException)
+            {
+                throw new InvalidOperationException("The given jagged array is not rectangular.");
+            }
+        }
 
         public static double[][] MatInverse(double[][] m)
         {
@@ -543,47 +731,7 @@ namespace TF
                 }
                 return x;
             }
-            public static T[,] SubArray<T>(T[,] values, int row_min, int row_max, int col_min, int col_max)
-            {
-                // Allocate the result array.
-                int num_rows = row_max - row_min + 1;
-                int num_cols = col_max - col_min + 1;
-                T[,] result = new T[num_rows, num_cols];
-
-                // Get the number of columns in the values array.
-                int total_cols = values.GetUpperBound(1) + 1;
-                int from_index = row_min * total_cols + col_min;
-                int to_index = 0;
-                for (int row = 0; row <= num_rows - 1; row++)
-                {
-                    Array.Copy(values, from_index, result, to_index, num_cols);
-                    from_index += total_cols;
-                    to_index += num_cols;
-                }
-
-                return result;
-            }
-            public static T[,] To2D<T>(T[][] source, int startRow = 0, int startCol = 0, int endRow = 0, int endCol = 0)
-            {
-                try
-                {
-                    var FirstDim = source.Length - endRow - startRow;
-                    var SecondDim =
-                        source.GroupBy(row => row.Length).Single()
-                            .Key - endCol - startCol; // throws InvalidOperationException if source is not rectangular
-
-                    var result = new T[FirstDim, SecondDim];
-                    for (var i = startRow; i < FirstDim; ++i)
-                        for (var j = startCol; j < SecondDim; ++j)
-                            result[i - startRow, j - startCol] = source[i][j];
-
-                    return result;
-                }
-                catch (InvalidOperationException)
-                {
-                    throw new InvalidOperationException("The given jagged array is not rectangular.");
-                }
-            }
+            
         }
 
     };

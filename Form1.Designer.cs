@@ -31,14 +31,16 @@
             this.button2 = new System.Windows.Forms.Button();
             this.Plotter = new System.Windows.Forms.PictureBox();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.label4 = new System.Windows.Forms.Label();
+            this.sizeY = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.sizeX = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.Flock = new System.Windows.Forms.TextBox();
             this.Pops = new System.Windows.Forms.TextBox();
-            this.sizeX = new System.Windows.Forms.TextBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
-            this.sizeY = new System.Windows.Forms.TextBox();
+            this.totalProgress = new System.Windows.Forms.ProgressBar();
+            this.ETA = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.Plotter)).BeginInit();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
@@ -55,9 +57,9 @@
             // 
             // Plotter
             // 
-            this.Plotter.Location = new System.Drawing.Point(33, 28);
+            this.Plotter.Location = new System.Drawing.Point(33, 37);
             this.Plotter.Name = "Plotter";
-            this.Plotter.Size = new System.Drawing.Size(1023, 651);
+            this.Plotter.Size = new System.Drawing.Size(982, 888);
             this.Plotter.TabIndex = 4;
             this.Plotter.TabStop = false;
             // 
@@ -72,10 +74,44 @@
             this.panel1.Controls.Add(this.button2);
             this.panel1.Controls.Add(this.Flock);
             this.panel1.Controls.Add(this.Pops);
-            this.panel1.Location = new System.Drawing.Point(1021, 28);
+            this.panel1.Location = new System.Drawing.Point(1021, 37);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(217, 446);
+            this.panel1.Size = new System.Drawing.Size(179, 448);
             this.panel1.TabIndex = 5;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(122, 139);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(34, 13);
+            this.label4.TabIndex = 7;
+            this.label4.Text = "SizeY";
+            // 
+            // sizeY
+            // 
+            this.sizeY.Location = new System.Drawing.Point(16, 136);
+            this.sizeY.Name = "sizeY";
+            this.sizeY.Size = new System.Drawing.Size(100, 20);
+            this.sizeY.TabIndex = 6;
+            this.sizeY.Text = "10";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(122, 97);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(34, 13);
+            this.label3.TabIndex = 5;
+            this.label3.Text = "SizeX";
+            // 
+            // sizeX
+            // 
+            this.sizeX.Location = new System.Drawing.Point(16, 94);
+            this.sizeX.Name = "sizeX";
+            this.sizeX.Size = new System.Drawing.Size(100, 20);
+            this.sizeX.TabIndex = 4;
+            this.sizeX.Text = "10";
             // 
             // label2
             // 
@@ -111,45 +147,32 @@
             this.Pops.TabIndex = 0;
             this.Pops.Text = "10000";
             // 
-            // sizeX
+            // totalProgress
             // 
-            this.sizeX.Location = new System.Drawing.Point(16, 94);
-            this.sizeX.Name = "sizeX";
-            this.sizeX.Size = new System.Drawing.Size(100, 20);
-            this.sizeX.TabIndex = 4;
-            this.sizeX.Text = "10";
+            this.totalProgress.Location = new System.Drawing.Point(33, 12);
+            this.totalProgress.Name = "totalProgress";
+            this.totalProgress.Size = new System.Drawing.Size(982, 23);
+            this.totalProgress.Step = 1;
+            this.totalProgress.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
+            this.totalProgress.TabIndex = 6;
             // 
-            // label3
+            // ETA
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(122, 97);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(34, 13);
-            this.label3.TabIndex = 5;
-            this.label3.Text = "SizeX";
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(122, 139);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(34, 13);
-            this.label4.TabIndex = 7;
-            this.label4.Text = "SizeY";
-            // 
-            // sizeY
-            // 
-            this.sizeY.Location = new System.Drawing.Point(16, 136);
-            this.sizeY.Name = "sizeY";
-            this.sizeY.Size = new System.Drawing.Size(100, 20);
-            this.sizeY.TabIndex = 6;
-            this.sizeY.Text = "10";
+            this.ETA.AutoSize = true;
+            this.ETA.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.ETA.Location = new System.Drawing.Point(1021, 9);
+            this.ETA.Name = "ETA";
+            this.ETA.Size = new System.Drawing.Size(150, 25);
+            this.ETA.TabIndex = 8;
+            this.ETA.Text = "0000:00:00.00";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1250, 691);
+            this.ClientSize = new System.Drawing.Size(1212, 937);
+            this.Controls.Add(this.ETA);
+            this.Controls.Add(this.totalProgress);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.Plotter);
             this.Name = "Form1";
@@ -158,6 +181,7 @@
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -173,6 +197,8 @@
         private System.Windows.Forms.TextBox sizeX;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox sizeY;
+        private System.Windows.Forms.ProgressBar totalProgress;
+        private System.Windows.Forms.Label ETA;
     }
 }
 
