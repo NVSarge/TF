@@ -233,7 +233,7 @@ namespace TF
             int penal = 3;
 
             var ge = convertWeaverToField(g, WX, WY);
-            StaticKXMOde skx = new StaticKXMOde();
+            KXMSolvers skx = new KXMSolvers();
             var U = skx.FE(WX, WY, ge, penal);
 
             var ke = skx.KE;
@@ -277,7 +277,7 @@ namespace TF
             int penal = 3;
 
             var ge = convertWeaverToField(g, WX, WY);
-            StaticKXMOde skx = new StaticKXMOde();
+            KXMSolvers skx = new KXMSolvers();
             double[,] U;
             var lambdas = skx.Modal(WX, WY, ge, penal, penal, out U);
             List<double> womega = new List<double>();
@@ -611,7 +611,7 @@ namespace TF
             Search.AddToGenePool(3);
             Search.AddToGenePool(4);
             Search.AddToGenePool(5);
-            Search.AddToGenePool(6);
+            Search.AddToGenePool(6); 
             Search.AddToGenePool(7);
             Search.InitialFillGP();
             Search.Show(1);

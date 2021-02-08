@@ -26,10 +26,6 @@ namespace TF
 
         }
 
-        public void DrawCallBack(double[] G)
-        {
-
-        }
 
         private void button1_Click(object sender, EventArgs e)
         {
@@ -102,89 +98,51 @@ namespace TF
             double volfraq = 0.5;
             int pps = int.Parse(Pops.Text);
             int flk = int.Parse(Flock.Text);
-
+            
+             var x=await Task.Factory.StartNew(() => SectionalSearch.GoSearch(ProgessDraw, WX, WY, volfraq, progressB), TaskCreationOptions.LongRunning);
             //await Task.Factory.StartNew(() => GeneticsSearch.GoBreed_Modal(ProgessDraw, WX, WY, volfraq, pps, flk), TaskCreationOptions.LongRunning);
-            await Task.Factory.StartNew(() => GeneticsSearch.GoWeave_Modal(ProgessDraw, WX, WY, volfraq, pps, flk, progressB), TaskCreationOptions.LongRunning);
+            //await Task.Factory.StartNew(() => GeneticsSearch.GoWeave_Modal(ProgessDraw, WX, WY, volfraq, pps, flk, progressB), TaskCreationOptions.LongRunning);
             //await Task.Factory.StartNew(() => GeneticsSearch.GoWeave(ProgessDraw, WX, WY, volfraq, pps,flk), TaskCreationOptions.LongRunning);
             //await Task.Factory.StartNew(() => GeneticsSearch.GoBreed(ProgessDraw, WX, WY, volfraq, 10000, 300), TaskCreationOptions.LongRunning);
             // await Task.Factory.StartNew(() => GeneticsSearch.GoSimp(ProgessDraw, WX, WY, volfraq, 300,1), TaskCreationOptions.LongRunning);
 
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private void button1_Click_1(object sender, EventArgs e)
         {
-            Console.WriteLine("\nBegin matrix inverse demo\n");
-            double[][] m = new double[4][];
-            m[0] = new double[] { 3, 7, 2, 5 };
-            m[1] = new double[] { 4, 0, 1, 1 };
-            m[2] = new double[] { 1, 6, 3, 0 };
-            m[3] = new double[] { 2, 8, 4, 3 };
-
-            Console.WriteLine("Original matrix m is ");
-            MatrixMath.MatShow(m, 4, 8);
-
-            double d = MatrixMath.MatDeterminant(m);
-            if (Math.Abs(d) < 1.0e-5)
-                Console.WriteLine("\nMatrix has no inverse");
-            else
-                Console.WriteLine("\nDet(m) = " + d.ToString("F4"));
-
-            double[][] inv = MatrixMath.MatInverse(m);
-            Console.WriteLine("\nInverse matrix inv is ");
-            MatrixMath.MatShow(inv, 4, 8);
-
-            double[][] prod = MatrixMath.MatProduct(m, inv);
-            Console.WriteLine("\nThe product of m * inv is ");
-            MatrixMath.MatShow(prod, 1, 6);
-
-            double[][] lum;
-            int[] perm;
-            int toggle = MatrixMath.MatDecompose(m, out lum, out perm);
-            Console.WriteLine("\nThe combined lower-upper decomposition of m is");
-            MatrixMath.MatShow(lum, 4, 8);
-
-            double[][] lower = MatrixMath.ExtractLower(lum);
-            double[][] upper = MatrixMath.ExtractUpper(lum);
-
-            Console.WriteLine("\nThe lower part of LUM is");
-            MatrixMath.MatShow(lower, 4, 8);
-
-            Console.WriteLine("\nThe upper part of LUM is");
-            MatrixMath.MatShow(upper, 4, 8);
-
-            Console.WriteLine("\nThe perm[] array is");
-            MatrixMath.VecShow(perm, 4);
-
-            double[][] lowUp = MatrixMath.MatProduct(lower, upper);
-            Console.WriteLine("\nThe product of lower * upper is ");
-            MatrixMath.MatShow(lowUp, 4, 8);
-
-            Console.WriteLine("\nVector b = ");
-            double[] b = new double[] { 12, 7, 7, 13 };
-            MatrixMath.VecShow(b, 1, 8);
-
-            Console.WriteLine("\nSolving m*x = b");
-            double[] x = MatrixMath.MatVecProd(inv, b);  // (1, 0, 2, 1)
-
-
-
-            Console.WriteLine("\nSolution x = ");
-            MatrixMath.VecShow(x, 1, 8);
-
-            double[,] mm = MatrixMath.To2D<double>(m);
-            MatrixMath.SolveLU tc = new MatrixMath.SolveLU(4, mm, b);
-            double[] U = new double[4];
-
-            if (tc.LUdecomp())
+            QuadTree<int> TestTree = new QuadTree<int>();
+            TestTree.Root.NodeValue = 10;
+            TestTree.Root.BB = new System.Windows.Rect(0,0, 250, 250);
+            TestTree.Root.SubDivide();
+            int i = 0;
+            foreach (var q in TestTree.Root.Siblings)
             {
-                U = tc.SolveCrout();
-
-            }/**/
-
-
-
-            Console.WriteLine("\nEnd demo");
-            Console.ReadLine();
+                q.NodeValue = i++;
+            }
+            TestTree.Root.Siblings[1].SubDivide();
+            TestTree.Root.Siblings[2].SubDivide();
+            foreach (var q in TestTree.Root.Siblings[2].Siblings)
+            {
+                q.NodeValue = i++;
+            }
+            foreach (var q in TestTree.Root.Siblings[1].Siblings)
+            {
+                q.NodeValue = i++;
+            }  
+            var Z = TestTree.getLeafs();
+            var DrawArea = new Bitmap(Plotter.Size.Width, Plotter.Size.Height);
+            Graphics g = Graphics.FromImage(DrawArea);
+            SolidBrush shadowBrush = new SolidBrush(Color.DarkGreen);
+            Pen p = new Pen(Color.Black);
+            foreach (var q in Z)
+            {
+                print(q.NodeValue);
+                q.NodeValue *= 2;
+                g.FillRectangle(shadowBrush,new RectangleF((float)q.BB.X, (float)q.BB.Y, (float)q.BB.Width, (float)q.BB.Height));
+                g.DrawRectangle(p, new Rectangle((int)q.BB.X, (int)q.BB.Y, (int)q.BB.Width, (int)q.BB.Height));
+            }            
+            g.Dispose();
+            Plotter.Image = DrawArea;
         }
     }
 

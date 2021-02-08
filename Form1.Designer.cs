@@ -41,6 +41,7 @@
             this.Pops = new System.Windows.Forms.TextBox();
             this.totalProgress = new System.Windows.Forms.ProgressBar();
             this.ETA = new System.Windows.Forms.Label();
+            this.button1 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.Plotter)).BeginInit();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
@@ -166,11 +167,22 @@
             this.ETA.TabIndex = 8;
             this.ETA.Text = "0000:00:00.00";
             // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(1048, 623);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 9;
+            this.button1.Text = "button1";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click_1);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1212, 937);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.ETA);
             this.Controls.Add(this.totalProgress);
             this.Controls.Add(this.panel1);
@@ -199,6 +211,7 @@
         private System.Windows.Forms.TextBox sizeY;
         private System.Windows.Forms.ProgressBar totalProgress;
         private System.Windows.Forms.Label ETA;
+        private System.Windows.Forms.Button button1;
     }
 }
 

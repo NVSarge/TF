@@ -5,7 +5,7 @@ using NumSharp;
 
 namespace TF
 {
-    public class StaticKXMOde
+    public class KXMSolvers
     {
         public double[] Check(int nelx, int nely, double rmin, double[] x)
         {
@@ -62,7 +62,7 @@ namespace TF
             {
                 double lmid = (l2 + l1) * 0.5;
                 double summ = 0.0;
-                for (int i = 0; i < x.Length; i++)
+                for (int i = 0; i < dc.Length; i++)
                 {
                     xnew[i] = Math.Max(0.001, Math.Max(x[i] - move, Math.Min(1.0, Math.Min(x[i] + move, x[i] * Math.Sqrt(-dc[i] / lmid)))));
                     summ += xnew[i];
@@ -117,7 +117,8 @@ namespace TF
             }
 
             int[] inds = new int[4 * (nely + 1)];
-            for(int i=0;i< 2 * (nely + 1); i++)
+            //left and right border fix
+            for (int i=0;i< 2 * (nely + 1); i++)
             {
                 inds[i] = i;
                 inds[i+ 2 * (nely + 1)] = N - 2 * (nely + 1)+i-1;
@@ -130,11 +131,7 @@ namespace TF
 
             Kmm = MatrixMath.CrossOut(Kmm, inds);
             Mmm = MatrixMath.CrossOut(Mmm, inds);
-            //left border fix
-
-            /*Kmm = MatrixMath.SubArray(Kmm, 2 * (nely + 1), 2 * (nelx + 1) * (nely + 1) - 1, 2 * (nely + 1), 2 * (nelx + 1) * (nely + 1) - 1);
-            Mmm = MatrixMath.SubArray(Mmm, 2 * (nely + 1), 2 * (nelx + 1) * (nely + 1) - 1, 2 * (nely + 1), 2 * (nelx + 1) * (nely + 1) - 1);
-            */
+         
 
             int reducedN = Kmm.GetLength(0);
             double[] wr = new double[reducedN];

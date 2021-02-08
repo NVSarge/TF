@@ -174,6 +174,25 @@ namespace TF
 
             return result;
         }
+        public static T[] To1D<T>(T[,] source)
+        {
+            try
+            {
+                var FirstDim = source.GetLength(0);
+                var SecondDim = source.GetLength(1);
+
+                var result = new T[FirstDim*SecondDim];
+                for (var i = 0; i < FirstDim; ++i)
+                    for (var j = 0l; j < SecondDim; ++j)
+                        result[i*SecondDim+j] = source[i,j];
+
+                return result;
+            }
+            catch (InvalidOperationException)
+            {
+                throw new InvalidOperationException("The given array is not rectangular.");
+            }
+        }
         public static T[,] To2D<T>(T[][] source, int startRow = 0, int startCol = 0, int endRow = 0, int endCol = 0)
         {
             try
