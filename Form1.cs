@@ -99,12 +99,13 @@ namespace TF
             int pps = int.Parse(Pops.Text);
             int flk = int.Parse(Flock.Text);
             
-             var x=await Task.Factory.StartNew(() => SectionalSearch.GoSearch(ProgessDraw, WX, WY, volfraq, progressB), TaskCreationOptions.LongRunning);
+            // var x=await Task.Factory.StartNew(() => SectionalSearch.GoSearch(ProgessDraw, WX, WY, volfraq, progressB), TaskCreationOptions.LongRunning);
             //await Task.Factory.StartNew(() => GeneticsSearch.GoBreed_Modal(ProgessDraw, WX, WY, volfraq, pps, flk), TaskCreationOptions.LongRunning);
             //await Task.Factory.StartNew(() => GeneticsSearch.GoWeave_Modal(ProgessDraw, WX, WY, volfraq, pps, flk, progressB), TaskCreationOptions.LongRunning);
             //await Task.Factory.StartNew(() => GeneticsSearch.GoWeave(ProgessDraw, WX, WY, volfraq, pps,flk), TaskCreationOptions.LongRunning);
             //await Task.Factory.StartNew(() => GeneticsSearch.GoBreed(ProgessDraw, WX, WY, volfraq, 10000, 300), TaskCreationOptions.LongRunning);
-            // await Task.Factory.StartNew(() => GeneticsSearch.GoSimp(ProgessDraw, WX, WY, volfraq, 300,1), TaskCreationOptions.LongRunning);
+             //await Task.Factory.StartNew(() => GeneticsSearch.GoSimp(ProgessDraw, WX, WY, volfraq, 300,1), TaskCreationOptions.LongRunning);
+            await Task.Factory.StartNew(() => GeneticsSearch.GoHarmonic(ProgessDraw, WX, WY, volfraq, 300, 1), TaskCreationOptions.LongRunning);
 
         }
 

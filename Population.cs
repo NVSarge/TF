@@ -11,18 +11,21 @@ namespace TF
     {
         GenePool<T> GP;
         List<Genome<T>> Pop;
-        List<double> Rating;
+        List<double[]> Rating;
         int FullLength;
-        public double GetTopRating(int ind = 0)
+        public double[] GetTopRating(int ind = 0)
         {
+            double[] retval;
             if (Rating.Count > 0)
             {
-                return Rating[ind];
+                retval= Rating[ind];
             }
             else
             {
-                return double.PositiveInfinity;
+                retval = new double[1];
+                retval[0]=double.PositiveInfinity;
             }
+            return retval;
         }
         public double[,] GetTopDataU(int ind = 0)
         {
@@ -84,7 +87,7 @@ namespace TF
         public Population(int size, int genomeLength)
         {
             FullLength = size;
-            Rating = new List<double>();
+            Rating = new List<double[]>();
             Pop = new List<Genome<T>>();
             GP = new GenePool<T>();
             for (int i = 0; i < size; i++)
@@ -106,7 +109,17 @@ namespace TF
                 var Gt = Pop[i].RandomizeInitial(GP, r);
             }
         }
-        public void Eval(Func<Genome<T>, int, int, double, double, double, double, double> EvalFunc, int WX, int WY, double vf, double f1, double f2, double f3)
+        public void InitialFill(T VF)
+        {
+            Random r = new Random();
+            for (int i = 0; i < Pop.Count; i++)
+            {
+
+               Pop[i].Initial(VF);
+              
+            }
+        }
+        public void Eval(Func<Genome<T>, int, int, double, double, double, double, double[]> EvalFunc, int WX, int WY, double vf, double f1=0, double f2=0, double f3=0)
         {
             Rating.Clear();
             /*foreach (var g in Pop)
@@ -117,7 +130,7 @@ namespace TF
 
             Parallel.ForEach(Pop, (g) =>
             {
-                double f = EvalFunc(g, WX, WY, vf,f1,f2,f3);
+                var f = EvalFunc(g, WX, WY, vf,f1,f2,f3);
                 g.Rating = f;
                 //Rating.Add(f);
             });/**/

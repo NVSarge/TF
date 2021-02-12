@@ -60,7 +60,7 @@
             // 
             this.Plotter.Location = new System.Drawing.Point(33, 37);
             this.Plotter.Name = "Plotter";
-            this.Plotter.Size = new System.Drawing.Size(982, 888);
+            this.Plotter.Size = new System.Drawing.Size(900, 900);
             this.Plotter.TabIndex = 4;
             this.Plotter.TabStop = false;
             // 

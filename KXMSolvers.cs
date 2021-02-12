@@ -52,7 +52,7 @@ namespace TF
             return dcn;
         }
 
-        public double[] OC(int nelx, int nely, double[] x, double volfraq, double[] dc)
+        public double[] OC(int nelx, int nely, double[] x, double volfraq, double[] dc)//ballance x for volume constraint
         {
             double[] xnew = new double[nelx * nely];
             double l1 = 0;
@@ -150,15 +150,84 @@ namespace TF
             return wr;
         }
 
-        
+        public double[] Harmonic(int nelx, int nely, double[] x, double p,double w1,double w2,double dw)
+        {
+            var ke = K_Plain_strain(1e10, 0.3);
+            var me = M_Plain_strain(1000, 1);
+            int N = 2 * (nelx + 1) * (nely + 1);
+            double[][] K = new double[N][];
+            double[][] M = new double[N][];
+            for (int i = 0; i < N; i++)
+            {
+                K[i] = new double[N];
+                M[i] = new double[N];
+            }
+            for (int elx = 0; elx < nelx; elx++)
+            {
+                for (int ely = 0; ely < nely; ely++)
+                {
+                    int n1 = (nely + 1) * elx + ely;
+                    int n2 = (nely + 1) * (elx + 1) + ely;
+                    var edof = np.array(2 * n1, 2 * n1 + 1, 2 * n2, 2 * n2 + 1, 2 * n2 + 2, 2 * n2 + 3, 2 * n1 + 2, 2 * n1 + 3);
+                    for (int i = 0; i < edof.size; i++)
+                    {
+
+                        for (int j = 0; j < edof.size; j++)
+                        {
+                            K[edof[i]][edof[j]] = K[edof[i]][edof[j]] + Math.Pow(x[ely + elx * (nely)], p) * ke[i][j];
+                            M[edof[i]][edof[j]] = M[edof[i]][edof[j]] + Math.Pow(x[ely + elx * (nely)], p) * me[i][j];
+                        }
+                    }
+                }
+            }
+
+            int[] inds = new int[2 * (nely + 1)];
+            //left and right border fix
+            for (int i = 0; i < 2 * (nely + 1); i++)
+            {
+                inds[i] = i;
+                //inds[i + 2 * (nely + 1)] = N - 2 * (nely + 1) + i - 1;
+            }
+
+
+            double[,] Kmm = MatrixMath.To2D<double>(K);
+            double[,] Mmm = MatrixMath.To2D<double>(M);
+
+
+            Kmm = MatrixMath.CrossOut(Kmm, inds);
+            Mmm = MatrixMath.CrossOut(Mmm, inds);
+
+            List<double> X = new List<double>();
+            int reducedN = Kmm.GetLength(0);
+            double[,] DSW =new double[reducedN, reducedN] ;
+            for(double w=w1; w<w2; w+=dw)
+            {
+                for(int ik=0;ik<Kmm.GetLength(0);ik++)
+                {
+                    for(int jk=0;jk<Kmm.GetLength(1);jk++)
+                    {
+                        double l = w * 2 * Math.PI;
+                        l = l * l;
+                        DSW[ik,jk] = Kmm[ik, jk]- l*Mmm[ik, jk];    
+                    }
+                }
+                double[] F = new double[reducedN];
+                double[] U= new double[reducedN];
+                F[reducedN/2 - 1] = -1e6;
+                alglib.rmatrixsolve(DSW, reducedN, F, out _,out _,out U);
+                X.Add(Math.Sqrt(U[reducedN - 2]* U[reducedN - 2]+U[reducedN - 1]* U[reducedN - 1]));
+            }
+             return X.ToArray();
+        }
 
         public double[] FE(int nelx, int nely, double[] x, double p)
         {
             var ke = KE;
-            double[][] K_m = new double[2 * (nelx + 1) * (nely + 1)][];
-            for (int i = 0; i < 2 * (nelx + 1) * (nely + 1); i++)
+            int N = 2 * (nelx + 1) * (nely + 1);
+            double[][] K_m = new double[N][];
+            for (int i = 0; i <N; i++)
             {
-                K_m[i] = new double[2 * (nelx + 1) * (nely + 1)];
+                K_m[i] = new double[N];
             }
             for (int elx = 0; elx < nelx; elx++)
             {
@@ -177,26 +246,37 @@ namespace TF
                     }
                 }
             }
-            double[] F = new double[2 * (nelx) * (nely + 1)];
-            //F[F.Length - 2 * nely - 1] = 1;
-            F[F.Length - 1] = 1;
-            double[][] L = K_m;
+           
+
+            int[] inds = new int[2 * (nely + 1)];
+            //left and right border fix
+            for (int i = 0; i < 2 * (nely + 1); i++)
+            {
+                inds[i] = i;               
+            }
+
 
             double[,] Kmm = MatrixMath.To2D<double>(K_m);
-            Kmm = MatrixMath.SubArray(Kmm, 2 * (nely + 1), 2 * (nelx + 1) * (nely + 1) - 1, 2 * (nely + 1), 2 * (nelx + 1) * (nely + 1) - 1);
-            MatrixMath.SolveLU tc = new MatrixMath.SolveLU(F.Length, Kmm, F);
-            double[] U = new double[2 * (nelx) * (nely + 1)];
-            if (tc.LUdecomp())
+            Kmm = MatrixMath.CrossOut(Kmm, inds);
+            int reducedN = Kmm.GetLength(0);
+            double[] F = new double[reducedN];
+            double[] X = new double[N];
+            F[reducedN - 1] = 1;            
+            alglib.rmatrixsolvefast(Kmm, reducedN, ref F,out _);
+            int c = 0;
+            for (int i = 0; i <N; i++)
             {
-                U = tc.SolveCrout();
-
-            }/**/
-            double[] retval = new double[2 * (nelx + 1) * (nely + 1)];
-            for (int i = 0; i < U.Length; i++)
-            {
-                retval[2 * (nely + 1) + i] = U[i];
-            }
-            return retval;
+                if (c<inds.Length && inds[c] == i)
+                {
+                    X[i] = 0;
+                    c++;
+                }
+                else
+                {
+                    X[i] = F[i - c];
+                }
+            }            
+            return X;
         }
         public double[][] KE
         {
