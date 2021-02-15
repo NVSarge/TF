@@ -62,8 +62,13 @@ namespace TF
                 retval[i] = Pop[ind].Genom[i];
             }
             return retval;
-
         }
+        public BaseGenome<T> GetTopGenom(int ind = 0)
+        {
+
+            return Pop[ind];
+        }
+
         public void Show(int n = 0)
         {
             print("============================");

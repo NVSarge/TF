@@ -142,45 +142,89 @@ namespace TF
         {
             double[] retval = new double[1];
             int penal = 3;
+            int qenal = 1;
             KXMSolvers skx = new KXMSolvers();
-            var U = skx.Harmonic(WX, WY, g.Genom, penal, f1, f2, f3);
-            var me = skx.M_Plain_strain(1000, 1);
-            double c = 0.0;
-            double[] dc = new double[WX * WY];
-            for (int elx = 0; elx < WX; elx++)
+            Dictionary<int, double> SelectedUs = new Dictionary<int, double>();
+            List<double> AFC=new List<double>();
+            for (double w = f1; w <= f2; w += f3)
             {
-                for (int ely = 0; ely < WY; ely++)
+                var U = skx.Harmonic(WX, WY, g.Genom, penal, qenal, w);
+                double multW = Math.Pow(2 * Math.PI * w, 2);
+                double CornerDeform = Math.Sqrt(U[2 * (WY + 1)*(WX + 1) - 1]* U[2 * (WY + 1) * (WX + 1) - 1] + U[2 * (WY + 1) * (WX + 1) - 2]* U[2 * (WY + 1) * (WX + 1) - 2]);
+                AFC.Add(CornerDeform);
+                for (int elx = 0; elx <=WX; elx++)
                 {
-                    int n1 = (WY + 1) * elx + ely;
-                    int n2 = (WY + 1) * (elx + 1) + ely;
-                    var edof = np.array(2 * n1, 2 * n1 + 1, 2 * n2, 2 * n2 + 1, 2 * n2 + 2, 2 * n2 + 3, 2 * n1 + 2, 2 * n1 + 3);
-                    double[] Ue = new double[8];
-                    for (int i = 0; i < edof.size; i++)
+                    for (int ely = 0; ely <=WY; ely++)
                     {
-                        Ue[i] = U[edof[i]];
+                        if (ely == WY/2)
+                        {
+                            
+                            double Mass = g.Genom[Math.Min(ely,WY-1) + Math.Min(elx,WX-1) * WY];
+                            int ind = 2 * ((WY + 1) * elx + ely);
+                            if (SelectedUs.ContainsKey(ind))
+                            {
+                                SelectedUs[ind] += multW * U[2 * ((WY + 1) * elx + ely)]* Mass;
+                            }
+                            else
+                            {
+                                SelectedUs.Add(ind, multW * U[2 * ((WY + 1) * elx + ely)] * Mass);
+                            }
+
+                            if (SelectedUs.ContainsKey(ind + 1))
+                            {
+                                SelectedUs[ind] += multW * U[2 * ((WY + 1) * elx + ely) + 1] * Mass;
+                            }
+                            else
+                            {
+                                SelectedUs.Add(ind + 1, multW * U[2 * ((WY + 1) * elx + ely) + 1] * Mass);
+                            }
+
+
+
+                        }
                     }
-                    double xp = Math.Pow(g.Genom[ely + elx * WY], penal);
-                    double[] MEUe = MatrixMath.MatVecProd(me, Ue);
-                    double UEMUE = 0;
-                    for (int i = 0; i < MEUe.Length; i++)
-                    {
-                        UEMUE += Ue[i] * MEUe[i];
-                    }
-                    c += xp * UEMUE;
-                    dc[ely + elx * WY] = -penal * Math.Pow(g.Genom[ely + elx * WY], penal - 1) * UEMUE;
                 }
             }
-            dc = skx.Check(WX, WY, 1.5, g.Genom, dc);
-            g.Genom = skx.OC(WX, WY, g.Genom, volfraq, dc);
-            double sumV = 0;
-            foreach (var gg in g.Genom)
+            foreach (var q in SelectedUs.Keys.ToList())
             {
-                sumV += (double)gg;
+                SelectedUs[q] = SelectedUs[q] / ((f2-f1)/f3);
+            }/**/
+
+            for (int inner = 0; inner <1; inner++)
+            {
+                var Ukx = skx.FE_inded(WX, WY, g.Genom, SelectedUs, penal);
+                var ke = skx.KE;
+                double c = 0.0;
+                double[] dc = new double[WX * WY];
+                for (int elx = 0; elx < WX; elx++)
+                {
+                    for (int ely = 0; ely < WY; ely++)
+                    {
+                        int n1 = (WY + 1) * elx + ely;
+                        int n2 = (WY + 1) * (elx + 1) + ely;
+                        var edof = np.array(2 * n1, 2 * n1 + 1, 2 * n2, 2 * n2 + 1, 2 * n2 + 2, 2 * n2 + 3, 2 * n1 + 2, 2 * n1 + 3);
+                        double[] Ue = new double[8];
+                        for (int i = 0; i < edof.size; i++)
+                        {
+                            Ue[i] = Ukx[edof[i]];
+                        }
+                        double xp = Math.Pow(g.Genom[ely + elx * WY], penal);
+                        double[] KEUe = MatrixMath.MatVecProd(ke, Ue);
+                        double UEKUE = 0;
+                        for (int i = 0; i < KEUe.Length; i++)
+                        {
+                            UEKUE += Ue[i] * KEUe[i];
+                        }
+                        c += xp * UEKUE;
+                        dc[ely + elx * WY] = -penal * Math.Pow(g.Genom[ely + elx * WY], penal - 1) * UEKUE;
+                    }
+                }
+
+                dc = skx.Check(WX, WY, 1.5, g.Genom, dc);
+                g.Genom = skx.OC(WX, WY, g.Genom, volfraq, dc);                
             }
-            sumV = sumV - WX * WY * volfraq;
-            retval[0] = c;
-            return retval;
-            //return U;
+
+            return AFC.ToArray();
         }
 
         public static double[] Test_eval_simp(Genome<double> g, int WX, int WY, double volfraq, double f1, double f2, double f3)
@@ -427,13 +471,26 @@ namespace TF
         {
 
             Population<double> Search = new Population<double>(PopSize, WX * WY);
-            Search.InitialFill(1.0);
-            Search.Show(1);
+            Search.InitialFill(0.5);
 
-            float MultySize = 20.0f;
+
+            var Gn = Search.GetTopGenom();
+
+            for (int elx = 0; elx < WX; elx++)
+            {
+                for (int ely = 0; ely < WY; ely++)
+                {
+                    if (ely >= WY / 2)
+                    {
+                        Gn.Genom[ely + elx * WY] = 1.0;
+                    }
+                }
+            }
+
+            float MultySize = 10.0f;
             Image MyImage = new Bitmap(900, 900);
             Graphics g = Graphics.FromImage(MyImage);
-
+            List<double> ZeroGraph = new List<double>();
             for (int i = 0; i < Pops; i++)
             {
                 List<double> Graph = new List<double>();
@@ -463,33 +520,50 @@ namespace TF
 
 
                 double w0 = 1;
-                double w1 = 5;
-                double dw = 0.02;
+                double w1 = 20;
+                double dw = 0.2;
                 Search.Eval(Harmonic_eval_simp, WX, WY, volfraq, w0, w1, dw);
+
                 Graph = Search.GetTopRating().OfType<double>().ToList();
-                float dY = 500;
-                g.FillRectangle(new SolidBrush(Color.White), 0, dY - 150, 500, dY + 150);
+                if (i == 0)
+                {
+                    Graph.ForEach(x=> { ZeroGraph.Add(x); });
+                }
+
+                float dY = 600;
+                float dx = 500.0f/(float)((w1 - w0) / dw);
+
+                g.FillRectangle(new SolidBrush(Color.White), 0, dY - 150, 600, dY);
                 g.DrawLine(new Pen(Color.Black, 2), 0, dY, 500, dY);
-                for (int id = 0; id < 50; id++)
+                for (int id = 0; id <50; id++)
                 {
                     g.DrawLine(new Pen(Color.Gray, 1), id * 10, dY - 50, id * 10, dY + 50);
-                    if (id % 10==0)
+                    if (id % 10 == 0)
                     {
-                        g.DrawLine(new Pen(Color.DarkGray,2), id * 10, dY - 50, id * 10, dY + 50);
+                        g.DrawLine(new Pen(Color.DarkGray, 2), id * 10, dY - 50, id * 10, dY + 50);
                     }
                 }
-                double data = Graph[0];
-                double olddata = Graph[0];
+                double data = ZeroGraph[0];
+                double olddata = ZeroGraph[0];
                 float MaxG = (float)(Graph.Max() + double.Epsilon);
                 Debug.WriteLine(Graph.First());
+                for (int gi = 0; gi < ZeroGraph.Count; gi++)
+                {
+                    if (!double.IsNaN(Graph[gi]))
+                    {
+                        data = ZeroGraph[gi] / MaxG;
+                        g.DrawLine(new Pen(Color.DarkGray, 3), gi * dx, dY - 150.0f * (float)olddata, (gi + 1.0f) * dx, dY - 150.0f * (float)data);
+                        olddata = data;
+                    }
+                }
+
                 for (int gi = 0; gi < Graph.Count; gi++)
                 {
-                    if (!double.IsNaN(Graph[i]))
+                    if (!double.IsNaN(Graph[gi]))
                     {
                         data = Graph[gi] / MaxG;
-                        g.DrawLine(new Pen(Color.Blue, 2), gi, dY - 150.0f * (float)olddata, gi + 1.0f, dY - 150.0f * (float)data);
+                        g.DrawLine(new Pen(Color.Blue, 2), gi*dx, dY - 150.0f * (float)olddata,(gi + 1.0f)*dx, dY - 150.0f * (float)data);
                         olddata = data;
-
                     }
                 }
                 progress.Report(MyImage);
